@@ -12,17 +12,17 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <errno.h>
-#define closesocked close
+#define closesocket close
 typedef int SOCKET;
 
 #else
 // for windows
 #include<WinSock2.h>
 // for uint16_t an so
-#include<cstdint>
-//#pragma comment(lib,"Ws2_32.lib")
+#include<stdint.h>
+#pragma comment(lib,"Ws2_32.lib")
 #endif
-#include<netinet/in.h> 
+//#include<netinet/in.h>
 
 int main() {
     SOCKET s;
@@ -32,7 +32,7 @@ int main() {
     // init socket library on windows
 #ifdef WIN32
     WSADATA wsadata;
-    if(WSAStartup(MAKEWORD(2, 2) &wsadata) < 0)){
+    if(WSAStartup(MAKEWORD(2, 2), &wsadata) < 0){
         printf("Error at initialising the socket library");
         return -1;
     }
@@ -57,23 +57,24 @@ int main() {
     }
 
     listen(s, 5);
-    
+
     // client
     l = sizeof(client);
     memset(&client, 0, sizeof(client));
 
     while(1){
         uint16_t a, n, suma;
-        prinft("Wainting for conections...");
+        printf("Wainting for conections...");
         c = accept(c, (struct sockaddr *) &client, &l);
         err = errno;
 
 #ifdef WIN32
         err = WSAGetLastError();
-#endif  
+#endif
         if(c < 0){
             printf("accept error %d", err);
         }
+        printf("Incomming connected client from: %s:%d", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
 
         int res = recv(c, (char*)&n, sizeof(n), 0);
         if(res != sizeof(n))
@@ -95,11 +96,9 @@ int main() {
         if(res != sizeof(n))
             printf("Error for operand n\n");
 
-        closesocked(0);
+        closesocket(0);
     }
 #ifdef WIN32
     WSACleanup();
 #endif
 }
-
-
